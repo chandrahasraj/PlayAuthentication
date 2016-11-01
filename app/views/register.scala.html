@@ -1,0 +1,10 @@
+@(title: String,isLoggedIn:Boolean,userInfo:UserInfo,myForm:Form[UserInfo])
+
+@import forms.registerForm
+
+@main(title,isLoggedIn,userInfo) {
+
+  <div class="container">
+  @registerForm(routes.Application.signup(),myForm("email"),myForm("password"),myForm("firstName"),myForm("lastName"),myForm("type"))
+  </div>
+}
