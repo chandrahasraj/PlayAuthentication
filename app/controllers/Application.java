@@ -1,5 +1,6 @@
 package controllers;
 
+import models.Order;
 import models.Rooms;
 import models.UserLogin;
 import models.UserInfo;
@@ -11,6 +12,7 @@ import utils.Authorization;
 import views.html.*;
 
 import java.util.List;
+import java.util.Map;
 
 import static play.data.Form.form;
 
@@ -58,7 +60,8 @@ public class Application extends Controller {
             return ok(login.render("Login", Authorization.isSessionAvailable(ctx()),Authorization.getUser(ctx()),data));
         else {
             session("user",userInfoForm.get().getEmail());
-            return ok(index.render("Order", Authorization.isSessionAvailable(ctx()), Authorization.getUser(ctx())));
+            Form<Order> roomsForm = Form.form(Order.class);
+            return ok(rooms.render("Rooms", Authorization.isSessionAvailable(ctx()), Authorization.getUser(ctx()),list_rooms(),roomsForm));
         }
     }
 
@@ -67,9 +70,31 @@ public class Application extends Controller {
         return redirect(routes.Application.index());
     }
 
-    public static Result list_rooms(){
+    public static List<Rooms> list_rooms(){
         List<Rooms> list = Authenticaton.generateRoomsList(null,null);
-        return ok();
+        return list;
+    }
+
+    public static Result rooms(){
+        Form<Order> roomsForm = Form.form(Order.class);
+        return ok(rooms.render("Rooms", Authorization.isSessionAvailable(ctx()), Authorization.getUser(ctx()),list_rooms(),roomsForm));
+    }
+
+    public static Result order(){
+//        Form<Order> orderForm = Form.form(Order.class).bindFromRequest();
+        final Map<String, String[]> form_values = request().body().asFormUrlEncoded();
+//        System.out.println(form_values);
+//        for(String s:form_values.get("room_id"))
+//        System.out.println(s);
+        int room_id = Integer.parseInt(form_values.get("room_id")[0]);
+        int no_of_rooms = Integer.parseInt(form_values.get("no_of_rooms")[0]);
+        System.out.println(room_id+","+no_of_rooms);
+        Rooms status = Authenticaton.createOrder(room_id,no_of_rooms);
+        if(status!=null)
+            return ok(order.render("Order", Authorization.isSessionAvailable(ctx()), Authorization.getUser(ctx()),status));
+        else
+            return internalServerError("Oops");
+//        return ok();
     }
 //    public static Result sample(String page){
 //        if(page.equals("loginForm"))

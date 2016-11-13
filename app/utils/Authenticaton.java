@@ -1,5 +1,6 @@
 package utils;
 
+import models.Order;
 import models.Rooms;
 import models.UserInfo;
 import models.UserLogin;
@@ -82,9 +83,10 @@ public class Authenticaton {
                 Rooms room = new Rooms();
                 room.setAddress(resultSet.getString("address"));
                 room.setCity(resultSet.getString("city"));
-                room.setNo_of_beds(resultSet.getInt("no_of_beds"));
                 room.setNo_of_rooms(resultSet.getInt("no_of_rooms"));
                 room.setState(resultSet.getString("state"));
+                room.setPlace_name(resultSet.getString("place_name"));
+                room.setId(resultSet.getInt("id"));
                 list.add(room);
             }
         } catch (SQLException e) {
@@ -93,4 +95,34 @@ public class Authenticaton {
         return list;
     }
 
+    public static Rooms createOrder(int room_id,int no_of_rooms){
+
+        try {
+            PreparedStatement statement = connection.prepareStatement("insert into orders(room_id,n_rooms) values('"+room_id+"','"+no_of_rooms
+                    +"')");
+            statement.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return getRoomById(room_id);
+    }
+
+    public static Rooms getRoomById(int id){
+        Rooms room = new Rooms();
+        try {
+            PreparedStatement statement = connection.prepareStatement("select * from rooms where id='"+id+"'");
+            ResultSet resultSet = statement.executeQuery();
+            while(resultSet.next()){
+                room.setAddress(resultSet.getString("address"));
+                room.setCity(resultSet.getString("city"));
+                room.setNo_of_rooms(resultSet.getInt("no_of_rooms"));
+                room.setState(resultSet.getString("state"));
+                room.setPlace_name(resultSet.getString("place_name"));
+                room.setId(resultSet.getInt("id"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return room;
+    }
 }

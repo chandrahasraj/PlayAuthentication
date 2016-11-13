@@ -1,0 +1,6 @@
+@(reverseRoute: play.api.mvc.Call,n_room: Field,id:Field)
+
+@helper.form(reverseRoute){
+  <td><input type="number" value="@n_room.value.getOrElse("")" placeholder="Enter no of rooms" ></td>
+  <td><button type="submit" class="btn btn-info">order</button></td>
+}

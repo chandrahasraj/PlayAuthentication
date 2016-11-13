@@ -1,0 +1,41 @@
+@(title: String,isLoggedIn:Boolean,userInfo:UserInfo,rooms:List[Rooms],roomForm:Form[Order])
+@import forms.orderForm
+
+@main(title,isLoggedIn,userInfo) {
+
+  <div class="container" style="margin-top: 10%">
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <th>Place Name</th>
+          <th>Address</th>
+          <th>No of Rooms Available</th>
+          <th>No of Beds Available</th>
+          <th>Number of Rooms to be Booked</th>
+        </thead>
+        <tbody>
+        @for(room <- rooms) {
+          <tr>
+            @helper.form(routes.Application.order()){
+            <td>@room.getPlace_name</td>
+            <td>@room.getAddress</td>
+            <td>@room.getNo_of_rooms</td>
+            <td>@room.getNo_of_beds</td>
+            <td style="display: none">
+            @helper.input(roomForm("room_id")) { (id:String, name:String, value:Option[String],args:scala.collection.immutable.Map[Symbol,Any]) =>
+              <input type="number" name="room_id" id="id" value="@room.getId">
+            }
+            </td>
+              <td>@helper.inputText(roomForm("no_of_rooms"))</td>
+              <td><button type="submit" class="btn btn-info">order</button></td>
+            }
+@*//            @orderForm(routes.Application.order(),roomForm("no_of_rooms"),roomForm("room_id"))*@
+          </tr>
+
+        }
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+}
