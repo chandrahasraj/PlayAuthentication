@@ -1,0 +1,103 @@
+@(title: String,isLoggedIn:Boolean,userInfo:UserInfo,users:List[UserInfo],managers:List[UserInfo],managerForm:Form[UserInfo],user_type:Integer)
+
+@main(title,isLoggedIn,userInfo,user_type) {
+
+  <div class="container" style="margin-top: 10%">
+    <div class="panel-group">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          List of Users
+        </div>
+        <div class="panel-body">
+          <div class="table-responsive">
+            <table class="table">
+              <th>Email</th>
+              <th>First Name</th>
+              <th>Last Name</th>
+              @for(user<- users){
+                <tr>
+                  <td>@user.getEmail</td>
+                  <td>@user.getFirstName</td>
+                  <td>@user.getLastName</td>
+                </tr>
+              }
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          List of Managers
+        </div>
+        <div class="panel-body">
+          <div class="alert alert-danger" id="alert_danger" style="display: none">
+            <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+            <strong>Danger!</strong> You are about to delete a manager.
+          </div>
+          <div class="table-responsive">
+            <table class="table">
+              <th>Email</th>
+              <th>First Name</th>
+              <th>Last Name</th>
+              @for(user<- managers){
+                <tr id="@user.getId">
+                  <td>@user.getEmail</td>
+                  <td>@user.getFirstName</td>
+                  <td>@user.getLastName</td>
+                  <td><button type="button" onclick="del('@user.getEmail','@user.getId')" class="btn btn-danger" >delete</button></td>
+                </tr>
+              }
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Trigger the modal with a button -->
+    <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModal">Add Managers</button>
+
+    <script>
+            function del(email,id) {
+              $.ajax( {
+                type: "DELETE",
+                url: '/deleteManager/' + email
+              });
+              $("#" + id).fadeOut(1000);
+            }
+    </script>
+
+      <!-- Modal -->
+    <div id="myModal" class="modal fade" role="dialog">
+      <div class="modal-dialog">
+
+          <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Add Managers</h4>
+          </div>
+          <div class="modal-body">
+            @helper.form(routes.Application.addManager()){
+              <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" class="form-control" id="email" name="email">
+              </div>
+              <div class="form-group">
+                <label for="firstName">First Name:</label>
+                <input type="text" class="form-control" id="firstName" name="firstName">
+              </div>
+              <div class="form-group">
+                <label for="lastName">Last Name:</label>
+                <input type="text" class="form-control" id="lastName" name="lastName">
+              </div>
+              <button type="submit" class="btn btn-info">add</button>
+          }
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+}

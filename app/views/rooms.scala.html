@@ -1,7 +1,7 @@
-@(title: String,isLoggedIn:Boolean,userInfo:UserInfo,rooms:List[Rooms],roomForm:Form[Order])
+@(title: String,isLoggedIn:Boolean,userInfo:UserInfo,rooms:List[Rooms],roomForm:Form[Order],user_type:Integer)
 @import forms.orderForm
 
-@main(title,isLoggedIn,userInfo) {
+  @main(title,isLoggedIn,userInfo,user_type) {
 
   <div class="container" style="margin-top: 10%">
     <div class="table-responsive">
@@ -16,19 +16,16 @@
         <tbody>
         @for(room <- rooms) {
           <tr>
-            @helper.form(routes.Application.order()){
+@*//            @helper.form(routes.Application.order()){*@
             <td>@room.getPlace_name</td>
             <td>@room.getAddress</td>
             <td>@room.getNo_of_rooms</td>
             <td>@room.getNo_of_beds</td>
-            <td style="display: none">
-            @helper.input(roomForm("room_id")) { (id:String, name:String, value:Option[String],args:scala.collection.immutable.Map[Symbol,Any]) =>
-              <input type="number" name="room_id" id="id" value="@room.getId">
-            }
-            </td>
-              <td>@helper.inputText(roomForm("no_of_rooms"))</td>
-              <td><button type="submit" class="btn btn-info">order</button></td>
-            }
+              <td>
+                  <input type="number" id="rooms_to_book" name="rooms_to_book" >
+              </td>
+              <td><button type="button" onclick="addOrder('@room.getId')" class="btn btn-info">order</button></td>
+@*//            }*@
 @*//            @orderForm(routes.Application.order(),roomForm("no_of_rooms"),roomForm("room_id"))*@
           </tr>
 
@@ -38,4 +35,148 @@
     </div>
 
   </div>
+
+      <script>
+
+              function addOrder(id){
+                  $("#room_id").val(id);
+                  $("#n_rooms").val($("#rooms_to_book").val());
+                  $("#myModal").modal({show:'true'});
+              }
+      </script>
+
+    <div id="myModal" class="modal fade" role="dialog">
+      <div class="modal-dialog">
+
+          <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Add Managers</h4>
+          </div>
+          <div class="modal-body">
+          @*/*@@*helper.form(routes.Application.order()){*/*@
+
+            <div class="panel panel-default credit-card-box">
+              <div class="panel-heading display-table" >
+                <div class="row display-tr" >
+                  <h3 class="panel-title display-td" >Payment Details</h3>
+                </div>
+              </div>
+              <div class="panel-body">
+                <form role="form" id="payment-form" method="POST" action="/order">
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <div class="form-group">
+                                <label for="no_of_rooms">Number of Rooms:</label>
+                                <div class="input-group">
+                                    <input type="number" name="n_rooms" id="n_rooms">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-xs-12">
+                        <div class="form-group">
+                          <div class="input-group date">
+                            <label for="start-date">Start Date</label>
+                            <input type="text" name="start-date" class="form-control" placeholder="mm/dd/yyyy">
+                            <div class="input-group-addon">
+                              <span class="glyphicon glyphicon-th"></span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  <div class="row">
+                    <div class="col-xs-12">
+                      <div class="form-group">
+                        <div class="input-group date">
+                          <label for="end-date">End Date</label>
+                          <input type="text" name="end-date" class="form-control" placeholder="mm/dd/yyyy">
+                          <div class="input-group-addon">
+                            <span class="glyphicon glyphicon-th"></span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                    <div class="row" style="display:none ">
+                        <div class="col-xs-12">
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input type="number" name="room_id" id="room_id">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                  <div class="row">
+                    <div class="col-xs-12">
+                      <div class="form-group">
+                        <label for="cardNumber">CARD NUMBER</label>
+                        <div class="input-group">
+                          <input
+                          type="tel"
+                          class="form-control"
+                          name="cardNumber"
+                          placeholder="Valid Card Number"
+                          autocomplete="cc-number"
+                          required autofocus
+                          />
+                          <span class="input-group-addon"><i class="fa fa-credit-card"></i></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-xs-7 col-md-7">
+                      <div class="form-group">
+                        <label for="cardExpiry"><span class="hidden-xs">EXPIRATION</span><span class="visible-xs-inline">EXP</span> DATE</label>
+                        <input
+                        type="tel"
+                        class="form-control"
+                        name="cardExpiry"
+                        placeholder="MM / YY"
+                        autocomplete="cc-exp"
+                        required
+                        />
+                      </div>
+                    </div>
+                    <div class="col-xs-5 col-md-5 pull-right">
+                      <div class="form-group">
+                        <label for="cardCVC">CV CODE</label>
+                        <input
+                        type="tel"
+                        class="form-control"
+                        name="cardCVC"
+                        placeholder="CVC"
+                        autocomplete="cc-csc"
+                        required
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-xs-12">
+                      <button class="subscribe btn btn-success btn-lg btn-block" type="submit">Start Subscription</button>
+                    </div>
+                  </div>
+                  <div class="row" style="display:none;">
+                    <div class="col-xs-12">
+                      <p class="payment-errors"></p>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+@*//          }*@
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
 }

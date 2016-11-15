@@ -1,10 +1,10 @@
-@(title: String,isLoggedIn:Boolean,userInfo:UserInfo,room:Rooms)
+@(title: String,isLoggedIn:Boolean,userInfo:UserInfo,room:Rooms,user_type:Integer,start_date:String,end_date:String)
 
 
-@main(title,isLoggedIn,userInfo) {
+  @main(title,isLoggedIn,userInfo,user_type){
 
   <div class="container" style="margin-top: 10%">
 
-  <h1>@room.getPlace_name() is booked</h1>
+  <h3>@room.getPlace_name() is booked from @start_date to @end_date</h3>
   </div>
 }

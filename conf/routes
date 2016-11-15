@@ -17,6 +17,15 @@ GET     /logout                 controllers.Application.logout()
 
 GET     /order                  controllers.Application.rooms()
 POST     /order              controllers.Application.order()
+GET     /booked             controllers.Application.booked_rooms()
+
+GET     /index/:u_type              controllers.Application.returnPageBasedOnType(u_type:Int)
+
+POST     /addManager        controllers.Application.addManager()
+POST    /addRoom            controllers.Application.addRoom()
+
+DELETE     /deleteManager/:email      controllers.Application.deleteManager(email:String)
+DELETE     /deleteRoom/:id      controllers.Application.deleteRoom(id:Int)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

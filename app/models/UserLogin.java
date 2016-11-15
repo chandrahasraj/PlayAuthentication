@@ -6,9 +6,12 @@ package models;
 public class UserLogin {
     public String email;
     public String password;
+    public int status;
 
     public UserLogin() {
     }
+
+
 
     public void setEmail(String email) {
         this.email = email;
@@ -16,6 +19,14 @@ public class UserLogin {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
     }
 
     public String getEmail() {

@@ -1,13 +1,44 @@
 package models;
 
-/**
- * Created by chandra on 10/31/16.
- */
+
 public class Order {
 
-    int no_of_rooms,room_id;
+    int no_of_rooms,room_id,id,user_id;
+    String start_date,end_date;
 
     public Order() {
+    }
+
+    public int getUser_id() {
+        return user_id;
+    }
+
+    public void setUser_id(int user_id) {
+        this.user_id = user_id;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getStart_date() {
+        return start_date;
+    }
+
+    public void setStart_date(String start_date) {
+        this.start_date = start_date;
+    }
+
+    public String getEnd_date() {
+        return end_date;
+    }
+
+    public void setEnd_date(String end_date) {
+        this.end_date = end_date;
     }
 
     public int getRoom_id() {

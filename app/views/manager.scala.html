@@ -1,0 +1,117 @@
+@(title: String,isLoggedIn:Boolean,userInfo:UserInfo,rooms:List[Rooms],roomForm:Form[Rooms],user_type:Integer)
+@import forms.orderForm
+
+@main(title,isLoggedIn,userInfo,user_type) {
+
+  <div class="container" style="margin-top: 10%">
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <th>Place Name</th>
+            <th>Address</th>
+            <th>No of Rooms Available</th>
+            <th>No of Beds Available</th>
+            <th>City</th>
+            <th>State</th>
+          </thead>
+          <tbody>
+          @for(room <- rooms) {
+            <tr id="@room.getId">
+                <td>@room.getPlace_name</td>
+                <td>@room.getAddress</td>
+                <td>@room.getNo_of_rooms</td>
+                <td>@room.getNo_of_beds</td>
+                <td>@room.getCity</td>
+                <td>@room.getState</td>
+                <td><button type="button" onclick="update('@room.getId')" class="btn btn-warning" >update</button></td>
+                <td><button type="button" onclick="del('@room.getId')" class="btn btn-danger" >delete</button></td>
+            </tr>
+          }
+          </tbody>
+        </table>
+      </div>
+
+      <script>
+              function del(id) {
+                  $.ajax( {
+                      type: "DELETE",
+                      url: '/deleteRoom/' + id
+                  });
+                  $("#" + id).fadeOut(1000);
+              }
+              function update(id){
+                  var lines=[];
+                  var $tds = $("#"+id).find("td");
+                  $.each($tds, function() {               // Visits every single <td> element
+                      lines.push($(this).text());        // Prints out the text within the <td>
+                  });
+
+//                          console.log(lines[0]);
+                          $("#place_name").val(lines[0]);
+                          $("#address").val(lines[1]);
+                          $("#no_of_rooms").val(lines[2]);
+                          $("#no_of_beds").val(lines[3]);
+                          $("#city").val(lines[4]);
+                          $("#state").val(lines[5]);
+                          $("#id_num").val(id);
+//                            $("#param").css("display","block");
+                          $("#myModal").modal({show:'true'});
+
+              }
+      </script>
+
+    <!-- Trigger the modal with a button -->
+    <button type="button" class="btn btn-info btn-lg" data-toggle="modal" onclick="$('#param').css('display','none');" data-target="#myModal">Add Rooms</button>
+
+      <!-- Modal -->
+    <div id="myModal" class="modal fade" role="dialog">
+      <div class="modal-dialog">
+
+          <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Add Managers</h4>
+          </div>
+          <div class="modal-body">
+          @helper.form(routes.Application.addRoom()){
+              <div class="form-group" id="param" style="display:none ">
+                  <label for="id">ID:</label>
+                  <input type="number" class="form-control" id="id_num" name="id_num" >
+              </div>
+            <div class="form-group">
+              <label for="place_name">Place_name:</label>
+              <input type="text" class="form-control" id="place_name" name="place_name">
+            </div>
+            <div class="form-group">
+              <label for="no_of_beds">No_of_beds:</label>
+              <input type="number" class="form-control" id="no_of_beds" name="no_of_beds">
+            </div>
+            <div class="form-group">
+              <label for="no_of_rooms">no_of_rooms:</label>
+              <input type="number" class="form-control" id="no_of_rooms" name="no_of_rooms">
+            </div>
+            <div class="form-group">
+              <label for="state">state:</label>
+              <input type="text" class="form-control" id="state" name="state">
+            </div>
+            <div class="form-group">
+              <label for="city">city:</label>
+              <input type="text" class="form-control" id="city" name="city">
+            </div>
+            <div class="form-group">
+              <label for="address">address:</label>
+              <input type="text" class="form-control" id="address" name="address">
+            </div>
+            <button type="submit" class="btn btn-info">add</button>
+          }
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+}

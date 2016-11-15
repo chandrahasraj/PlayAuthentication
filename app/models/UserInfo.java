@@ -8,9 +8,17 @@ public class UserInfo{
     String firstName;
     String lastName;
 
-    int type;
+    int type,id;
 
     public UserInfo(){}
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public void setEmail(String email) {
         this.email = email;
