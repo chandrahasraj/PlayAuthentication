@@ -6,12 +6,11 @@
     <head>
         <title>@title</title>
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
-        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/credit_card.css")">
+
         <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/css/bootstrap-datepicker.css">
+
         <script src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")" type="text/javascript"></script>
-        <script src="@routes.Assets.at("javascripts/credit_card.js")" type="text/javascript"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/js/bootstrap-datepicker.js"></script>
+
             <!-- Latest compiled and minified CSS -->
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 
@@ -30,20 +29,20 @@
         <nav class="navbar navbar-inverse navbar-fixed-top">
             <div class="container-fluid">
                 <div class="navbar-header">
-                    <a class="navbar-brand" href="#">Book Rental Rooms</a>
+                    <a class="navbar-brand" href="@routes.Application.index()">HOLIDAY HOTELS</a>
                 </div>
                 <ul class="nav navbar-nav">
-                    <li class="active"><a href="#">Home</a></li>
+                    <li class="active"><a href="@routes.Application.index()">Home</a></li>
                     @if(isLoggedIn) {
                         @if(user_type == 3) {
                             <li><a href="@routes.Application.rooms()">Available Rooms</a></li>
                             <li><a href="/booked">Booked Rooms</a></li>
                         }
                         @if(user_type == 2) {
-                            <li><a href="/index/2">Manager Page</a></li>
+                            <li><a href="/report">Reports</a></li>
                         }
                         @if(user_type == 1) {
-                            <li><a href="/index/1">Admin Page</a></li>
+                            <li><a href="/report">Reports</a></li>
                         }
                     }
                 </ul>
@@ -54,7 +53,7 @@
                     </ul>
                 }else{
                     <ul class="nav navbar-nav navbar-right">
-                        <li><a>@userInfo.getEmail()</a></li>
+                        <li><a href="/profile">Profile</a></li>
                         <li><a href="@routes.Application.logout()">Logout</a></li>
                     </ul>
                 }

@@ -4,9 +4,17 @@ package models;
 public class Order {
 
     int no_of_rooms,room_id,id,user_id;
-    String start_date,end_date;
+    String start_date,end_date,place_name;
 
     public Order() {
+    }
+
+    public String getPlace_name() {
+        return place_name;
+    }
+
+    public void setPlace_name(String place_name) {
+        this.place_name = place_name;
     }
 
     public int getUser_id() {

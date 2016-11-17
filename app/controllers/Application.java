@@ -1,9 +1,7 @@
 package controllers;
 
-import models.Order;
-import models.Rooms;
-import models.UserLogin;
-import models.UserInfo;
+import com.fasterxml.jackson.databind.JsonNode;
+import models.*;
 import play.mvc.*;
 import play.data.*;
 
@@ -44,27 +42,43 @@ public class Application extends Controller {
 
     public static Result signup_page(){
         if(session().get("user")==null) {
-            Form<UserInfo> form = Form.form(UserInfo.class);
-            return ok(register.render("Register", Authorization.isSessionAvailable(ctx()),Authorization.getUser(ctx()),form,0));
+            return ok(register.render("Register", Authorization.isSessionAvailable(ctx()),Authorization.getUser(ctx()),"Page",0));
         }else{
             int type= Integer.valueOf(session().get("type"));
             return returnPageBasedOnType(type);
         }
     }
     public static Result signup(){
-        Form<UserInfo> userInfoForm = Form.form(UserInfo.class).bindFromRequest();
-        String res = Authenticaton.insertIntoTabl(userInfoForm.get());
-        Form<UserInfo> form = Form.form(UserInfo.class);
+        final Map<String, String[]> form_values = request().body().asFormUrlEncoded();
+//
+        String email,first_name,last_name,pwd;
+        email = form_values.get("email")[0];
+        first_name = form_values.get("first_name")[0];
+        last_name = form_values.get("last_name")[0];
+        pwd = form_values.get("pwd")[0];
+
+        if(email==null || email.isEmpty() || first_name==null || first_name.isEmpty()
+                || last_name==null || last_name.isEmpty() || pwd==null || pwd.isEmpty())
+            return ok(register.render("Register", Authorization.isSessionAvailable(ctx()),Authorization.getUser(ctx()),"Fields cannot be empty!!!",0));
+
+        UserInfo userInfo = new UserInfo();
+        userInfo.setEmail(email);
+        userInfo.setPassword(pwd);
+        userInfo.setFirstName(first_name);
+        userInfo.setLastName(last_name);
+
+        String res = Authenticaton.insertIntoTabl(userInfo);
+//        System.out.println(form_values);
+
         if(!res.equals("SUCCESS"))
-            return ok(register.render("Register", Authorization.isSessionAvailable(ctx()),Authorization.getUser(ctx()),form,0));
+            return ok(register.render("Register", Authorization.isSessionAvailable(ctx()),Authorization.getUser(ctx()),"User Already Exists!!!",0));
         else
             return ok(index.render("Index", Authorization.isSessionAvailable(ctx()),Authorization.getUser(ctx()),0));
     }
 
     public static Result login_page(){
         if(session().get("user")==null) {
-            Form<UserLogin> data = Form.form(UserLogin.class);
-            return ok(login.render("Login", Authorization.isSessionAvailable(ctx()), Authorization.getUser(ctx()), data,0));
+            return ok(login.render("Login", Authorization.isSessionAvailable(ctx()), Authorization.getUser(ctx()), "Page",0));
         }else{
             int type= Integer.valueOf(session().get("type"));
             return returnPageBasedOnType(type);
@@ -72,19 +86,33 @@ public class Application extends Controller {
     }
 
     public static Result login(){
-        Form<UserLogin> userInfoForm = Form.form(UserLogin.class).bindFromRequest();
-//        System.out.println(userInfoForm.get().getEmail());
-        boolean status = Authenticaton.getFromTabl(userInfoForm.get());
-        Form<UserLogin> data = Form.form(UserLogin.class);
+
+        final Map<String, String[]> form_values = request().body().asFormUrlEncoded();
+        String email = form_values.get("email")[0];
+        String pwd = form_values.get("pwd")[0];
+        if(email == null || email.isEmpty() ||pwd == null || pwd.isEmpty())
+            return ok(login.render("Login", Authorization.isSessionAvailable(ctx()),Authorization.getUser(ctx()),"Email or Password cannot be empty!!!",0));
+
+        UserLogin u_login = new UserLogin();
+        u_login.setEmail(email);
+        u_login.setPassword(pwd);
+
+        boolean status = Authenticaton.getFromTabl(u_login);
+
         if(!status)
-            return ok(login.render("Login", Authorization.isSessionAvailable(ctx()),Authorization.getUser(ctx()),data,0));
+            return ok(login.render("Login", Authorization.isSessionAvailable(ctx()),Authorization.getUser(ctx()),"Email/Password doesn't match",0));
         else {
-            UserInfo user = Authenticaton.getUserByEmail(userInfoForm.get().getEmail());
+            UserInfo user = Authenticaton.getUserByEmail(email);
             session("user",user.getEmail());
             session("type",String.valueOf(user.getType()));
             int type= Integer.valueOf(session().get("type"));
             return returnPageBasedOnType(type);
         }
+    }
+
+    public static Result reportPage(){
+        List<Report> reports = Authenticaton.getReports();
+        return ok(report.render("Report", Authorization.isSessionAvailable(ctx()),Authorization.getUser(ctx()),reports,0));
     }
 
     public static Result returnPageBasedOnType(int type){
@@ -96,11 +124,36 @@ public class Application extends Controller {
             return ok(admin.render("Admin", Authorization.isSessionAvailable(ctx()), Authorization.getUser(ctx()), Authenticaton.getUserByType(3),Authenticaton.getUserByType(2), managerForm,type));
         }else if(type == 2){
             Form<Rooms> roomsForm = Form.form(Rooms.class);
-            return ok(manager.render("Manager", Authorization.isSessionAvailable(ctx()), Authorization.getUser(ctx()),list_rooms(session().get("user")),roomsForm,type));
+            return ok(manager.render("Manager", Authorization.isSessionAvailable(ctx()), Authorization.getUser(ctx()),list_rooms(type),roomsForm,type));
         }else{
             Form<Order> roomsForm = Form.form(Order.class);
-            return ok(rooms.render("Rooms", Authorization.isSessionAvailable(ctx()), Authorization.getUser(ctx()), list_rooms(session().get("user")), roomsForm,type));
+            return ok(rooms.render("Rooms", Authorization.isSessionAvailable(ctx()), Authorization.getUser(ctx()), list_rooms(type), roomsForm,type));
         }
+    }
+
+    public static Result profile(){
+        int type = Integer.parseInt(session().get("type"));
+        return ok(profile.render("Profile", Authorization.isSessionAvailable(ctx()), Authorization.getUser(ctx()), type));
+    }
+
+    public static Result changePwd(){
+        JsonNode jnode = request().body().asJson();
+        int id = Integer.valueOf(jnode.get("id").asText());
+        String pwd = jnode.get("pwd").asText();
+
+        Authenticaton.changePassword(id,pwd);
+//        System.out.println("id="+id+",pwd="+pwd);
+        return ok();
+    }
+
+    public static Result saveProfile(){
+        JsonNode jnode = request().body().asJson();
+        int id = Integer.valueOf(jnode.get("id").asText());
+        String first_name = jnode.get("first_name").asText();
+        String last_name = jnode.get("last_name").asText();
+
+        Authenticaton.changeName(id,first_name,last_name);
+        return ok();
     }
 
     public static Result logout(){
@@ -108,29 +161,39 @@ public class Application extends Controller {
         return redirect(routes.Application.index());
     }
 
-    public static List<Rooms> list_rooms(String email){
-        List<Rooms> list = Authenticaton.generateRoomsList(null,null,email);
+    public static List<Rooms> list_rooms(int type){
+        List<Rooms> list = new ArrayList<>();
+        if(type == 3) {
+            String email = session().get("user");
+            list = Authenticaton.generateRoomsList(null, null, email);
+        }else{
+            list = Authenticaton.generateRoomsList(null, null, null);
+        }
         return list;
     }
+
 
     public static Result rooms(){
         Form<Order> roomsForm = Form.form(Order.class);
         int type= Integer.valueOf(session().get("type"));
-        String email = session().get("user");
-        return ok(rooms.render("Rooms", Authorization.isSessionAvailable(ctx()), Authorization.getUser(ctx()),list_rooms(email),roomsForm,type));
+//        System.out.println("Current user type:"+type);
+        return ok(rooms.render("Rooms", Authorization.isSessionAvailable(ctx()), Authorization.getUser(ctx()),list_rooms(type),roomsForm,type));
     }
 
     public static Result booked_rooms(){
 
         String email = session().get("user");
-        UserInfo user = Authenticaton.getUserByEmail(email);
-        List<Rooms> rooms = list_rooms(email);
-        List<Order> ordersList = new ArrayList<>();
-        for(Rooms room:rooms)
-         ordersList.addAll(Authenticaton.getOrderByRoomId(room.getId(),user.getId()));
         int type= Integer.valueOf(session().get("type"));
+        UserInfo user = Authenticaton.getUserByEmail(email);
+        List<Rooms> rooms = list_rooms(type);
+        List<Order> ordersList = new ArrayList<>();
+        for(Rooms room:rooms) {
+            ordersList.addAll(Authenticaton.getOrderByRoomId(room.getId(), user.getId()));
+//            System.out.println("current order size="+ordersList.size());
+        }
 
-        return ok(booked_rooms.render("Rooms", Authorization.isSessionAvailable(ctx()), Authorization.getUser(ctx()),rooms,ordersList,type));
+
+        return ok(booked_rooms.render("Rooms", Authorization.isSessionAvailable(ctx()), Authorization.getUser(ctx()),ordersList,type));
     }
 
     public static Result order(){
@@ -143,7 +206,7 @@ public class Application extends Controller {
 //        String card_number = form_values.get("cardNumber")[0];
 //        String card_expiry = form_values.get("cardExpiry")[0];
 //        String card_cvc = form_values.get("cardCVC")[0];
-//        System.out.println(form_values);
+//        System.out.println("room id = "+room_id);
         Rooms status = Authenticaton.createOrder(room_id,no_of_rooms,start_date,end_date,email);
         if(status!=null) {
             int type= Integer.valueOf(session().get("type"));
@@ -154,7 +217,7 @@ public class Application extends Controller {
 
     public static Result addManager(){
         final Map<String, String[]> form_values = request().body().asFormUrlEncoded();
-        System.out.println(form_values);
+//        System.out.println(form_values);
         UserInfo user = new UserInfo();
         user.setEmail(form_values.get("email")[0]);
         user.setFirstName(form_values.get("firstName")[0]);
@@ -180,7 +243,12 @@ public class Application extends Controller {
         Authenticaton.deleteRoomById(id);
         Form<Rooms> roomsForm = Form.form(Rooms.class);
         int type= Integer.valueOf(session().get("type"));
-        return ok(manager.render("Manager", Authorization.isSessionAvailable(ctx()), Authorization.getUser(ctx()),list_rooms(session().get("user")),roomsForm,type));
+        return ok(manager.render("Manager", Authorization.isSessionAvailable(ctx()), Authorization.getUser(ctx()),list_rooms(type),roomsForm,type));
+    }
+
+    public static Result deleteOrder(int id){
+        Authenticaton.deleteOrderById(id);
+        return redirect(routes.Application.booked_rooms());
     }
 
     public static Result addRoom(){
@@ -193,12 +261,12 @@ public class Application extends Controller {
         room.setPlace_name(form_values.get("place_name")[0]);
         room.setNo_of_beds(Integer.valueOf(form_values.get("no_of_beds")[0]));
         room.setNo_of_rooms(Integer.valueOf(form_values.get("no_of_rooms")[0]));
-        if(form_values.get("id_num")!=null)
+        if(form_values.get("id_num")!=null && !form_values.get("id_num")[0].isEmpty())
             room.setId(Integer.valueOf(form_values.get("id_num")[0]));
         Authenticaton.addRoom(room);
         int type= Integer.valueOf(session().get("type"));
         Form<Rooms> roomsForm = Form.form(Rooms.class);
-        return ok(manager.render("Manager", Authorization.isSessionAvailable(ctx()), Authorization.getUser(ctx()),list_rooms(session().get("user")),roomsForm,type));
+        return ok(manager.render("Manager", Authorization.isSessionAvailable(ctx()), Authorization.getUser(ctx()),list_rooms(type),roomsForm,type));
     }
 
 //    public static Result sample(String page){

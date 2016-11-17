@@ -1,9 +1,6 @@
 package utils;
 
-import models.Order;
-import models.Rooms;
-import models.UserInfo;
-import models.UserLogin;
+import models.*;
 import play.db.DB;
 import play.mvc.*;
 import play.data.*;
@@ -35,6 +32,53 @@ public class Authenticaton {
                 user.setPassword(resultSet.getString("password"));
                 user.setId(resultSet.getInt("id"));
                // System.out.println(user.toString());
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return user;
+    }
+
+    public static List<Report> getReports(){
+        List<Report> reports = new ArrayList<>();
+        try {
+                PreparedStatement st = connection.prepareStatement("select u.*,o.* from userinfo u join orders o on(o.user_id = u.id)");
+                ResultSet resultSet = st.executeQuery();
+                while(resultSet.next()){
+
+                    Report order = new Report();
+                    order.setN_rooms(resultSet.getInt("n_rooms"));
+                    order.setRoom_id(resultSet.getInt("room_id"));
+                    order.setUser_id(resultSet.getInt("user_id"));
+                    order.setOrder_id(resultSet.getInt("id"));
+                    order.setStart_date(resultSet.getString("start_date"));
+                    order.setEnd_date(resultSet.getString("end_date"));
+//                    order.setPlace(resultSet.getString("place_name"));
+                    order.setEmail(resultSet.getString("email"));
+                    order.setFirst_name(resultSet.getString("firstname"));
+                    order.setLast_name(resultSet.getString("lastname"));
+                    reports.add(order);
+                }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return reports;
+    }
+
+    public static UserInfo getUserById(int id){
+        UserInfo user = null;
+        try {
+            PreparedStatement statement = connection.prepareStatement("SELECT * FROM userinfo where id = '"+id+"'");
+            ResultSet resultSet = statement.executeQuery();
+            while(resultSet.next()){
+                user = new UserInfo();
+                user.setEmail(resultSet.getString("email"));
+                user.setFirstName(resultSet.getString("firstname"));
+                user.setLastName(resultSet.getString("lastname"));
+                user.setType(resultSet.getInt("type"));
+                user.setPassword(resultSet.getString("password"));
+                user.setId(resultSet.getInt("id"));
+                // System.out.println(user.toString());
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -81,6 +125,31 @@ public class Authenticaton {
         }
     }
 
+    public static void changePassword(int id,String pwd){
+        try {
+            String query = "UPDATE userinfo SET " +
+                    "password='"+pwd+"'" +
+                    " where id='"+id+"'";
+            PreparedStatement statement = connection.prepareStatement(query);
+            statement.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void changeName(int id,String firstname,String lastname){
+        try {
+            String query = "UPDATE userinfo SET " +
+                    "firstname='"+firstname+"'," +
+                    "lastname='"+lastname+"'"+
+                    " where id='"+id+"'";
+            PreparedStatement statement = connection.prepareStatement(query);
+            statement.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void deleteUserByEmail(String email){
         try {
             PreparedStatement statement = connection.prepareStatement("delete FROM userinfo where email = '"+email+"'");
@@ -93,6 +162,15 @@ public class Authenticaton {
     public static void deleteRoomById(int id){
         try {
             PreparedStatement statement = connection.prepareStatement("delete FROM rooms where id = '"+id+"'");
+            statement.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void deleteOrderById(int id){
+        try {
+            PreparedStatement statement = connection.prepareStatement("delete FROM orders where id = '"+id+"'");
             statement.execute();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -139,8 +217,7 @@ public class Authenticaton {
         if(getUserByEmail(user.getEmail())==null){
             try {
                 PreparedStatement statement = connection.prepareStatement("INSERT INTO userinfo(email,firstname,lastname,password,type) VALUES('" +
-                        user.getEmail()+"','" + user.getFirstName()+"','"+user.getLastName()+"','"+user.getPassword()+"','"+user.getType()+
-                        "')");
+                        user.getEmail()+"','" + user.getFirstName()+"','"+user.getLastName()+"','"+user.getPassword()+"','3')");
                 statement.execute();
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -151,15 +228,27 @@ public class Authenticaton {
     }
 
     public static boolean getFromTabl(UserLogin user){
-        UserInfo internal_user = getUserByEmail(user.getEmail());
-        return internal_user.getPassword().equals(user.getPassword());
+        if(user!=null && user.getEmail()!=null) {
+            UserInfo internal_user = getUserByEmail(user.getEmail());
+            if(internal_user!=null)
+                return internal_user.getPassword().equals(user.getPassword());
+            else
+                return false;
+        }
+        return false;
     }
 
     public static List<Rooms> generateRoomsList(String state,String city,String email){
         String query = "";
-        int user_id = getUserByEmail(email).getId();
+
         if(state == null && city == null){
-            query = "SELECT * FROM rooms r join orders o on(r.id=o.room_id) where o.user_id <> '"+user_id+"'";
+            if(email!=null) {
+                int user_id = getUserByEmail(email).getId();
+//                System.out.println("Current user id:"+user_id);
+                query = "select s.* from rooms s where s.id not in (SELECT r.id FROM rooms r join orders o on(r.id=o.room_id) where o.user_id = '" + user_id + "')";
+            }else{
+                query = "SELECT * FROM rooms r ";
+            }
         }else if(state == null && city!=null){
             query = "SELECT * FROM rooms where state like '%"+city+"%'";
         }else if(state!=null && city ==null){
@@ -199,6 +288,17 @@ public class Authenticaton {
             try {
                 PreparedStatement statement = connection.prepareStatement("insert into orders(room_id,n_rooms,start_date,end_date,user_id) values('" + room_id + "','" + no_of_rooms
                         + "','" + start_date + "','" + end_date + "','"+user.getId()+"')");
+                Rooms room = getRoomById(room_id);
+                String query = "UPDATE rooms SET " +
+                        "place_name='"+room.getPlace_name()+"'," +
+                        "city='"+room.getCity()+"'," +
+                        "state='"+room.getState()+"'," +
+                        "address='"+room.getAddress()+"'," +
+                        "no_of_rooms='"+(room.getNo_of_rooms() - no_of_rooms)+"'," +
+                        "no_of_beds='"+room.getNo_of_beds()+"'" +
+                        " where id='"+room.getId()+"'";
+                PreparedStatement statement_2 = connection.prepareStatement(query);
+                statement_2.execute();
                 statement.execute();
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -210,7 +310,8 @@ public class Authenticaton {
     public static List<Order> getOrderByRoomId(int room_id,int user_id){
         List<Order> orders =  new ArrayList<>();
         try {
-            PreparedStatement statement = connection.prepareStatement("select * from orders where room_id='"+room_id+"' and user_id='"+user_id+"'");
+            PreparedStatement statement = connection.prepareStatement("select o.*,r.place_name from orders o,rooms r  where o.room_id <> '"+room_id+"' and" +
+                    " o.user_id='"+user_id+"' and r.id <> '"+room_id+"'");
             ResultSet resultSet = statement.executeQuery();
             while(resultSet.next()){
                 Order order = new Order();
@@ -220,11 +321,13 @@ public class Authenticaton {
                 order.setId(resultSet.getInt("id"));
                 order.setStart_date(resultSet.getString("start_date"));
                 order.setEnd_date(resultSet.getString("end_date"));
+                order.setPlace_name(resultSet.getString("place_name"));
                 orders.add(order);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+//        System.out.println("room id = "+room_id+", user id = "+user_id);
         return orders;
     }
 
